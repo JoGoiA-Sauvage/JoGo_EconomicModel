@@ -10,7 +10,7 @@
     },
     {
       "name": "Impôt qui rigole pas du tout",
-      "rates": [0, 5, 10, 15, 30]
+      "rates": [0, 3, 6, 12, 24]
     },
     {
       "name": "Flat tax",

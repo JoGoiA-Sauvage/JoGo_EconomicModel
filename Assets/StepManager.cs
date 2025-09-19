@@ -9,6 +9,14 @@ public class StepManager : MonoBehaviour
 
     bool _isUpdating = false;
 
+
+    void Awake()
+    {
+        Screen.SetResolution(1280, 720, false); // false = fenêtré
+    }
+
+
+
     void Start()
     {
         ReinitialiserSysteme();
