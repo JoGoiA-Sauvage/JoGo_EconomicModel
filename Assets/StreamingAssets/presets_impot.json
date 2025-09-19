@@ -1,0 +1,25 @@
+{
+  "presets": [
+    {
+      "name": "Impôt cool",
+      "rates": [0, 1, 2, 3, 5]
+    },
+    {
+      "name": "Impôt raide",
+      "rates": [0, 1, 3, 5, 10]
+    },
+    {
+      "name": "Impôt qui rigole pas du tout",
+      "rates": [0, 5, 10, 15, 30]
+    },
+    {
+      "name": "Flat tax",
+      "rates": [5, 5, 5, 5, 5]
+    }
+    ,
+    {
+      "name": "On prend tout !",
+      "rates": [100, 100, 100, 100, 100]
+    }
+  ]
+}
