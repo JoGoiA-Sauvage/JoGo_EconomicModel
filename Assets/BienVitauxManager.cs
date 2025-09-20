@@ -156,19 +156,15 @@ public class BienVitauxManager : MonoBehaviour
         float import = pointDeDepartImport * facteurImport;
 
         // Équilibrage de la balance : on doit "produire" l'équivalent des importations.
-        // On garde UNE SEULE BARRE export, mais son montant reflète les coûts de production actuels.
         float export = 0f;
         if (toggleCorrectionBalance && toggleCorrectionBalance.isOn)
         {
-            // Parts normalisées (clé de répartition) lues depuis les inputs %
             float pS = ParsePercent(inputPourcentageSalaire, 1f);
             float pU = ParsePercent(inputPourcentageUsure, 0f);
             float pI = ParsePercent(inputPourcentageImport, 0f);
             float norm = Mathf.Max(1e-6f, pS + pU + pI);
             pS /= norm; pU /= norm; pI /= norm;
 
-            // Coût pour produire des exports d'une "valeur" égale aux importations
-            // (quand facteurs = 1 → export == import, comportement historique)
             float exportSalaire = import * (pS * facteurSalaire);
             float exportUsure = import * (pU * facteurUsure);
             float exportImport = import * (pI * facteurImport);
@@ -177,49 +173,53 @@ public class BienVitauxManager : MonoBehaviour
             exportUsurePart = exportUsure;
             exportImportPart = exportImport;
 
-
             export = exportSalaire + exportUsure + exportImport;
-
-        } else
+        }
+        else
         {
             exportSalairePart = exportUsurePart = exportImportPart = 0.0f;
         }
 
         float tauxEpargne = ParsePercent(inputTauxEpargne, 0f);
-        float salaireEpargne = salaire * tauxEpargne;
-        float salaireConsome = salaire - salaireEpargne;
-        SalaireEpargneActuel = salaireEpargne;
+
+        // Épargne domestique (affichée dans la barre "salaire")
+        float salaireEpargneDomestique = salaire * tauxEpargne;
+        float salaireConsome = salaire - salaireEpargneDomestique;
+
+        // Épargne sur les salaires liés aux exports (cachée ici, mais injectée plus tard)
+        float salaireEpargneExport = exportSalairePart * tauxEpargne;
+
+        // Total pour réinjection dans le patrimoine
+        SalaireEpargneActuel = salaireEpargneDomestique + salaireEpargneExport;
 
         float total = salaire + usure + import + export;
         CoutTotalActuel = total;
 
-        // Affichage du label Export (uniquement si équilibrage actif et montant > 0)
+        // Affichage du label Export
         bool showExportLabel = (toggleCorrectionBalance && toggleCorrectionBalance.isOn && export > 0f);
         if (labelExport) labelExport.gameObject.SetActive(showExportLabel);
 
-        // --- Dessin UI seulement si panel existe ---
+        // --- Dessin UI ---
         if (panelCout == null) return;
 
-        // Même échelle que la barre patrimoine × zoom des impôts
         float patrimoineScale = (populationManager != null) ? populationManager.patrimoineScale : 0f;
         float zoomImpots = (impotManager != null) ? Mathf.Max(1e-6f, impotManager.facteurZoom) : 1f;
         float scale = Mathf.Max(0f, patrimoineScale) * zoomImpots;
 
         float y = 0f;
-        SetSegmentAndLabel(segSalaireEpargne, labelSalaireEpargne, salaireEpargne * scale, ref y);
+        // Ici on affiche uniquement l’épargne domestique
+        SetSegmentAndLabel(segSalaireEpargne, labelSalaireEpargne, salaireEpargneDomestique * scale, ref y);
         SetSegmentAndLabel(segSalaireConsome, labelSalaireConsome, salaireConsome * scale, ref y);
         SetSegmentAndLabel(segUsure, labelUsure, usure * scale, ref y);
         SetSegmentAndLabel(segImport, labelImport, import * scale, ref y);
-        float exportStartY = y; // on mémorise la position bas du segment Export
+        float exportStartY = y;
         SetSegmentAndLabel(segExport, labelExport, export * scale, ref y);
 
-        // --- Mini-barres parallèles de composition Export ---
-        // Même échelle que la barre (patrimoineScale × zoom impôts)
+        // Mini-barres exports
         float hES = exportSalairePart * scale;
         float hEU = exportUsurePart * scale;
         float hEI = exportImportPart * scale;
 
-        // Si équilibrage OFF ou export=0 → on cache tout
         bool showMini = (toggleCorrectionBalance && toggleCorrectionBalance.isOn && export > 0f);
 
         if (!showMini)
@@ -230,14 +230,13 @@ public class BienVitauxManager : MonoBehaviour
         }
         else
         {
-            // Empilement à côté du segment Export, en partant de son bas
             float yComp = exportStartY;
             SetSideBar(segBalanceSalaire, hES, yComp); yComp += hES;
             SetSideBar(segBalanceUsure, hEU, yComp); yComp += hEU;
             SetSideBar(segBalanceImport, hEI, yComp);
         }
-
     }
+
 
     private void SetSideBar(RectTransform rt, float height, float yBottom)
     {
@@ -333,7 +332,7 @@ public class BienVitauxManager : MonoBehaviour
         return def;
     }
 
-    private static float ParsePercent(TMP_InputField field, float def01)
+    public static float ParsePercent(TMP_InputField field, float def01)
     {
         float v = ParseFloat(field, def01 * 100f);
         return Mathf.Clamp01(v / 100f);
@@ -341,9 +340,10 @@ public class BienVitauxManager : MonoBehaviour
 
     private void UpdateMultLabels()
     {
-        if (labelMultSalaire) labelMultSalaire.text = "×" + facteurSalaire.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
-        if (labelMultUsure) labelMultUsure.text = "×" + facteurUsure.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
-        if (labelMultImport) labelMultImport.text = "×" + facteurImport.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
+        if (labelMultSalaire) labelMultSalaire.text = "×" + facteurSalaire.ToString("0", System.Globalization.CultureInfo.InvariantCulture);
+        if (labelMultUsure) labelMultUsure.text = "×" + facteurUsure.ToString("0", System.Globalization.CultureInfo.InvariantCulture);
+        if (labelMultImport) labelMultImport.text = "×" + facteurImport.ToString("0", System.Globalization.CultureInfo.InvariantCulture);
     }
+
 
 }

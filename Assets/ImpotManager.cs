@@ -196,56 +196,30 @@ public class ImpotManager : MonoBehaviour
     public void CalculerImpotsDetail()
     {
         // reset
-        for (int i = 0; i < _impotsParTranche.Length; i++)
-            _impotsParTranche[i] = 0f;
+        for (int i = 0; i < _impotsParTranche.Length; i++) _impotsParTranche[i] = 0f;
         TotalImpots = 0f;
 
         if (populationManager == null) return;
         var agents = populationManager.Agents;
         if (agents == null || agents.Count == 0) return;
 
-        // Patrimoine total pour borner la tranche 5 (∞)
-        float totalPatrimoine = populationManager.GetTotals().totalWealth;
-
         foreach (var agent in agents)
         {
             float valeur = agent.patrimoine;
-            float prevMax = 0f; // borne basse de la tranche courante (cumul)
+            if (valeur <= 0f) continue;
 
-            for (int i = 0; i < seuils.Length; i++)
-            {
-                // Borne haute de la tranche i :
-                // - tranches 1..4 : min(seuil[i], totalPatrimoine)
-                // - tranche 5     : totalPatrimoine (∞ borné au total)
-                float upper = (i < seuils.Length - 1)
-                    ? Mathf.Min(seuils[i], totalPatrimoine)
-                    : totalPatrimoine;
+            // Tranche d’appartenance de l’agent (sa tranche "finale")
+            int tranche = TrouverTranche(valeur);
 
-                // Largeur "géométrique" de la tranche sur l’axe des patrimoines
-                float span = Mathf.Max(0f, upper - prevMax);
-                if (span <= 0f) { prevMax = upper; continue; }
+            // Montant d’impôt réel (toujours calculé marginalement)
+            float imp = CalculerImpotsPourValeur(valeur);
 
-                // Part du patrimoine de l’agent dans cette tranche
-                float abovePrev = Mathf.Max(0f, valeur - prevMax);
-                float taxable = Mathf.Min(abovePrev, span);
-                if (taxable > 0f)
-                {
-                    float rate = taux[i] * 0.01f;
-                    float imp = taxable * rate;
-                    _impotsParTranche[i] += imp;
-                    TotalImpots += imp;
-                }
-
-                // Passe à la tranche suivante
-                prevMax = upper;
-
-                // Si l’agent est entièrement "couvert" (valeur ≤ borne haute courante), on peut sortir
-                if (valeur <= upper) break;
-            }
+            // >>> On attribue TOUT l’impôt de cet agent à SA tranche
+            _impotsParTranche[tranche] += imp;
+            TotalImpots += imp;
         }
-
-        // Debug.Log($"[Impots] total={TotalImpots}, parts= [{string.Join(", ", _impotsParTranche)}]");
     }
+
 
     /// <summary> Met à jour la barre verticale d’impôts. </summary>
     public void MettreAJourBarreImpots()

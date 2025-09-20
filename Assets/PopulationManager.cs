@@ -41,6 +41,7 @@ public class PopulationManager : MonoBehaviour
     [Header("Croissance")]
     public TMP_InputField inputCroissance;          // % de croissance du patrimoine global
     public Toggle toggleCroissanceEgalitaire;       // mode de redistribution (true = égale, false = proportionnelle)
+    public Slider sliderCroissance;
 
     [Header("Managers externes")]
     public BienVitauxManager bienVitauxManager;
@@ -59,19 +60,38 @@ public class PopulationManager : MonoBehaviour
     public TMP_Text labelConsommation;
     public TMP_Text labelCroissance;
 
-
+    [Header("Dette")]
+    public RectTransform panelDette;   // Panel vertical dédié à la dette (ancré bas)
+    public RectTransform segDette;     // Image/RectTransform de la barre dette
+    public TMP_Text labelDette;        // Texte centré dans la barre pour afficher la valeur
+    public float detteTotale = 0f;     // Dette cumulée
+    
+    [Header("Dette - Affichage cyclique")]
+    public TMP_Text labelToursDette;    // Champ texte pour afficher le nombre de tours complets
+    private int detteToursComplets = 0; // Compteur interne
 
     // Definition de la structure "Agent".
     [System.Serializable]
     public struct Agent
     {
-        public float patrimoine;   // richesse totale (argent + biens)
+        public float patrimoine;  // total (toujours = liquide + dur)
+        public float liquide;      // part “cash”
+        public float dur;          // part “dur”
 
-        public Agent(float patrimoine)
+        public Agent(float patrimoine, float partDur)
         {
+            partDur = Mathf.Clamp01(partDur);
             this.patrimoine = patrimoine;
+            this.dur = patrimoine * partDur;
+            this.liquide = patrimoine - this.dur;
+        }
+
+        public void SyncTotal()
+        {
+            patrimoine = liquide + dur;
         }
     }
+
 
     // --- Internes existants ---
     private System.Random _rng;
@@ -107,20 +127,201 @@ public class PopulationManager : MonoBehaviour
         if (toggleCroissanceEgalitaire) toggleCroissanceEgalitaire.onValueChanged.AddListener(_ => FindObjectOfType<StepManager>()?.MettreAJourSysteme());
         if (inputPatrimoineDur) inputPatrimoineDur.onValueChanged.AddListener(_ => FindObjectOfType<StepManager>()?.MettreAJourSysteme());
 
+        if (sliderCroissance)
+        {
+            sliderCroissance.onValueChanged.AddListener(v =>
+            {
+                if (inputCroissance)
+                    inputCroissance.SetTextWithoutNotify(v.ToString("0.0", CultureInfo.InvariantCulture));
+                FindObjectOfType<StepManager>()?.MettreAJourSysteme();
+            });
 
+            // synchro input → slider
+            if (inputCroissance)
+            {
+                var t = inputCroissance.text.Replace(',', '.');
+                if (float.TryParse(t, NumberStyles.Float, CultureInfo.InvariantCulture, out var cParsed))
+                    sliderCroissance.SetValueWithoutNotify(cParsed);
+            }
+        }
     }
 
-    /// <summary> Bouton UI: génère un nouveau seed et reconstruit (nouvelle population). </summary>
-    public void Reseed()
+
+
+
+
+
+
+
+
+
+
+    // --- Simulation annuelle ---
+
+    /// <summary>
+    /// Applique les impôts à chaque agent : proportionnels au patrimoine.
+    /// On retire d'abord sur la partie liquide, puis sur le patrimoine "dur" si besoin.
+    /// </summary>
+    public void AppliquerImpots(float totalImpots)
     {
-        // 1) Nouveau seed + RNG
-        seed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
-        _rng = new System.Random(seed);
+        if (_agentsSorted == null || _agentsSorted.Length == 0) return;
+        if (totalImpots <= 0f) return;
 
-        // 2) Laisser StepManager refaire tout le pipeline proprement
-        var step = FindObjectOfType<StepManager>();
-        step?.ReinitialiserSysteme();
+        var stats = GetTotals();
+        float totalWealth = stats.totalWealth;
+        if (totalWealth <= 0f) return;
+
+        for (int i = 0; i < _agentsSorted.Length; i++)
+        {
+            float part = _agentsSorted[i].patrimoine / totalWealth;
+            float impotAgent = totalImpots * part;
+
+            if (impotAgent <= _agentsSorted[i].liquide)
+            {
+                _agentsSorted[i].liquide -= impotAgent;
+            }
+            else
+            {
+                float reste = impotAgent - _agentsSorted[i].liquide;
+                _agentsSorted[i].liquide = 0f;
+                _agentsSorted[i].dur = Mathf.Max(0f, _agentsSorted[i].dur - reste);
+            }
+
+            _agentsSorted[i].SyncTotal();
+        }
     }
+
+
+    /// <summary>
+    /// Ajoute la croissance annuelle.
+    /// Si égalitaire : chaque agent reçoit la même part.
+    /// Sinon : proportionnellement au patrimoine.
+    /// </summary>
+    public void AppliquerCroissance()
+    {
+        if (_agentsSorted == null || _agentsSorted.Length == 0) return;
+        if (croissanceTaux <= 0f) return;
+
+        var stats = GetTotals();
+        float totalWealth = stats.totalWealth;
+        float delta = totalWealth * croissanceTaux;
+        if (delta <= 0f) return;
+
+        if (croissanceEgalitaire)
+        {
+            float gain = delta / _agentsSorted.Length;
+            for (int i = 0; i < _agentsSorted.Length; i++)
+            {
+                _agentsSorted[i].liquide += gain;
+                _agentsSorted[i].SyncTotal();
+            }
+        }
+        else
+        {
+            for (int i = 0; i < _agentsSorted.Length; i++)
+            {
+                float part = _agentsSorted[i].patrimoine / totalWealth;
+                _agentsSorted[i].liquide += delta * part;
+                _agentsSorted[i].SyncTotal();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Ajoute le salaire épargné de l’année.
+    /// Actuellement : redistribution proportionnelle au patrimoine.
+    /// </summary>
+    public void AjouterSalaireEpargne(float montantTotal)
+    {
+        if (_agentsSorted == null || _agentsSorted.Length == 0) return;
+        if (montantTotal <= 0f) return;
+
+        var stats = GetTotals();
+        float totalWealth = stats.totalWealth;
+        if (totalWealth <= 0f) return;
+
+        for (int i = 0; i < _agentsSorted.Length; i++)
+        {
+            float part = _agentsSorted[i].patrimoine / totalWealth;
+            _agentsSorted[i].liquide += montantTotal * part;
+            _agentsSorted[i].SyncTotal();
+        }
+    }
+
+
+    public void RecalculerCentiles()
+    {
+        if (_agentsSorted == null || _agentsSorted.Length == 0) return;
+
+        // Recalcul des centiles
+        _centilesSums = AggregateToCentiles(_agentsSorted, 100);
+
+        // Trouver le max pour l’échelle
+        float maxFortune = 0f;
+        for (int i = 0; i < _centilesSums.Length; i++)
+            if (_centilesSums[i] > maxFortune) maxFortune = _centilesSums[i];
+        if (maxFortune <= 0f) maxFortune = 1f;
+
+        // MAJ des barres existantes
+        for (int i = 0; i < _barresCentiles.Count && i < _centilesSums.Length; i++)
+        {
+            var rt = _barresCentiles[i].GetComponent<RectTransform>();
+            float hNorm = _centilesSums[i] / maxFortune;
+            float hPix = Mathf.Max(0f, panelCentiles.rect.height * hNorm);
+            rt.sizeDelta = new Vector2(rt.sizeDelta.x, hPix);
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+    //////////////////////////////////////////////
+    ///
+    /// Gestion de la DETTE
+    /// 
+    //////////////////////////////////////////////
+
+
+
+    public void ConstruireBarreDette()
+    {
+        if (segDette == null || panelDette == null) return;
+
+        float maxHeight = panelDette.rect.height;
+
+        // Nombre de tours complets
+        detteToursComplets = Mathf.FloorToInt((detteTotale * patrimoineScale) / maxHeight);
+
+        // Hauteur du reste (entre 0 et maxHeight)
+        float h = (detteTotale * patrimoineScale) % maxHeight;
+
+        segDette.gameObject.SetActive(h > 0f);
+        segDette.sizeDelta = new Vector2(segDette.sizeDelta.x, h);
+        segDette.anchoredPosition = new Vector2(segDette.anchoredPosition.x, 0f);
+
+        if (labelDette)
+        {
+            labelDette.gameObject.SetActive(h > 0f);
+            labelDette.text = FormatAmount(detteTotale);
+            //var rt = labelDette.rectTransform;
+            //var pos = rt.anchoredPosition;
+            //rt.anchoredPosition = new Vector2(pos.x, h * 0.5f);
+        }
+
+        if (labelToursDette)
+        {
+            labelToursDette.text = $"Tours: {detteToursComplets}";
+            labelToursDette.gameObject.SetActive(detteToursComplets > 0);
+        }
+    }
+
 
 
 
@@ -181,9 +382,19 @@ public class PopulationManager : MonoBehaviour
         if (panelPatrimoine == null) return;
 
         var stats = GetTotals();
-        float total = stats.totalWealth;
-        float liquide = total * (1f - partPatrimoineDur);
-        float dur = total * partPatrimoineDur;
+
+        // NOUVEAU
+        float liquide = 0f, dur = 0f;
+        if (_agentsSorted != null)
+        {
+            for (int i = 0; i < _agentsSorted.Length; i++)
+            {
+                liquide += _agentsSorted[i].liquide;
+                dur += _agentsSorted[i].dur;
+            }
+        }
+        float total = liquide + dur;
+
 
         float impot = (impotManager != null) ? impotManager.TotalImpots : 0f;
 
@@ -221,20 +432,26 @@ public class PopulationManager : MonoBehaviour
 
 
         float croissance = total * croissanceTaux;
+        float epargne = (bienVitauxManager != null) ? bienVitauxManager.SalaireEpargneActuel : 0f;
+
+        // On additionne croissance + épargne
+        float reinjection = croissance + epargne;
 
         // --- Affichage avec la scale figée ---
         float y = 0f;
 
         SetSegmentAndLabel(segPatrimoineDur, labelPatrimoineDur, durAffiche * patrimoineScale, ref y);
         SetSegmentAndLabel(segPatrimoineLiquide, labelPatrimoineLiquide, liquideAffiche * patrimoineScale, ref y);
-        SetSegmentAndLabel(segConsommation, labelConsommation, impotAffiche * patrimoineScale, ref y); // <- impôts
-        SetSegmentAndLabel(segCroissance, labelCroissance, croissance * patrimoineScale, ref y);
+        SetSegmentAndLabel(segConsommation, labelConsommation, impotAffiche * patrimoineScale, ref y);
+        SetSegmentAndLabel(segCroissance, labelCroissance, reinjection * patrimoineScale, ref y);
 
 
         // Reste
         float maxHeight = panelPatrimoine.rect.height;
         float resteHeight = Mathf.Max(0f, maxHeight - y);
         SetSegment(segReste, resteHeight, ref y);
+
+        ConstruireBarreDette();
     }
 
     private void SetSegmentAndLabel(RectTransform segment, TMP_Text label, float height, ref float y)
@@ -295,6 +512,19 @@ public class PopulationManager : MonoBehaviour
 
 
 
+
+
+
+
+
+    //////////////////////////////////////////////
+    ///
+    /// CONSTRUIRE LA POPULATION
+    /// 
+    //////////////////////////////////////////////
+
+
+
     // ---------- Construction / UI ----------
     /// <summary> Lit les inputs, génère la population (agents), agrège en 100 centiles et dessine les barres. </summary>
     public void ConstruireCentiles()
@@ -310,9 +540,13 @@ public class PopulationManager : MonoBehaviour
         if (inputPatrimoine)
         {
             var t = inputPatrimoine.text.Replace(',', '.');
-            if (float.TryParse(t, NumberStyles.Float, CultureInfo.InvariantCulture, out var patParsed))
-                patrimoineTotal = Mathf.Max(1e-6f, patParsed);
+            if (float.TryParse(t, NumberStyles.Float, CultureInfo.InvariantCulture, out var patMoyenParsed))
+            {
+                float patrimoineMoyen = Mathf.Max(1e-6f, patMoyenParsed);
+                patrimoineTotal = patrimoineMoyen * population;
+            }
         }
+
 
         if (inputGini)
         {
@@ -380,6 +614,15 @@ public class PopulationManager : MonoBehaviour
 
     }
 
+
+
+
+
+
+
+
+
+
     private float[] AggregateToCentiles(Agent[] agentsSorted, int nb = 100)
     {
         int n = agentsSorted?.Length ?? 0;
@@ -426,6 +669,13 @@ public class PopulationManager : MonoBehaviour
         FindObjectOfType<StepManager>()?.ReinitialiserSysteme();
     }
 
+
+
+
+
+
+
+
     /// <summary> Calcule les principaux agrégats sur la population triée. </summary>
     public PopulationStats GetTotals()
     {
@@ -461,6 +711,9 @@ public class PopulationManager : MonoBehaviour
         return stats;
     }
 
+
+
+
     /// <summary> Met à jour les TMP_Text publics si assignés. </summary>
     public void UpdateStatsUI()
     {
@@ -481,6 +734,10 @@ public class PopulationManager : MonoBehaviour
         }
     }
 
+
+
+
+
     private static float ComputeMedianFromSorted(Agent[] sorted)
     {
         int n = sorted.Length;
@@ -488,6 +745,14 @@ public class PopulationManager : MonoBehaviour
         if ((n & 1) == 1) return sorted[n / 2].patrimoine;
         return 0.5f * (sorted[n / 2 - 1].patrimoine + sorted[n / 2].patrimoine);
     }
+
+
+
+
+
+
+
+
 
     private static float ComputeGiniFromSorted(Agent[] sorted)
     {
@@ -549,8 +814,7 @@ public class PopulationManager : MonoBehaviour
 
         Agent[] agents = new Agent[n];
         for (int i = 0; i < n; i++)
-            agents[i] = new Agent(vals[i]);
-
+            agents[i] = new Agent(vals[i], partPatrimoineDur);
         return agents;
     }
 
@@ -588,5 +852,17 @@ public class PopulationManager : MonoBehaviour
         double r = q2 * q2;
         return (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q2 /
                (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1.0);
+    }
+
+    /// <summary> Bouton UI: génère un nouveau seed et reconstruit (nouvelle population). </summary>
+    public void Reseed()
+    {
+        // 1) Nouveau seed + RNG
+        seed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
+        _rng = new System.Random(seed);
+
+        // 2) Laisser StepManager refaire tout le pipeline proprement
+        var step = FindObjectOfType<StepManager>();
+        step?.ReinitialiserSysteme();
     }
 }
