@@ -43,6 +43,11 @@ public class PopulationManager : MonoBehaviour
     public Toggle toggleCroissanceEgalitaire;       // mode de redistribution (true = égale, false = proportionnelle)
     public Slider sliderCroissance;
 
+    [Header("Croissance naturelle (Piketty-style)")]
+    public Toggle toggleRepartitionNaturelle;   // référence au Toggle UI
+    public bool repartitionNaturelle = false;  // état courant, mis à jour depuis le Toggle
+    [Range(1f, 10f)] public float expoNaturel = 2f;
+
     [Header("Managers externes")]
     public BienVitauxManager bienVitauxManager;
     public ImpotManager impotManager;
@@ -59,6 +64,8 @@ public class PopulationManager : MonoBehaviour
     public TMP_Text labelPatrimoineLiquide;
     public TMP_Text labelConsommation;
     public TMP_Text labelCroissance;
+    public TMP_Text labelCompression;   
+    private int compressionFactor = 1;
 
     [Header("Dette")]
     public RectTransform panelDette;   // Panel vertical dédié à la dette (ancré bas)
@@ -144,6 +151,17 @@ public class PopulationManager : MonoBehaviour
                     sliderCroissance.SetValueWithoutNotify(cParsed);
             }
         }
+        if (toggleRepartitionNaturelle)
+        {
+            toggleRepartitionNaturelle.onValueChanged.AddListener(v =>
+            {
+                repartitionNaturelle = v;
+                FindObjectOfType<StepManager>()?.MettreAJourSysteme();
+            });
+            repartitionNaturelle = toggleRepartitionNaturelle.isOn;
+        }
+
+
     }
 
 
@@ -165,16 +183,12 @@ public class PopulationManager : MonoBehaviour
     public void AppliquerImpots(float totalImpots)
     {
         if (_agentsSorted == null || _agentsSorted.Length == 0) return;
-        if (totalImpots <= 0f) return;
-
-        var stats = GetTotals();
-        float totalWealth = stats.totalWealth;
-        if (totalWealth <= 0f) return;
+        if (impotManager == null) return;
 
         for (int i = 0; i < _agentsSorted.Length; i++)
         {
-            float part = _agentsSorted[i].patrimoine / totalWealth;
-            float impotAgent = totalImpots * part;
+            float impotAgent = impotManager.CalculerImpotsAgent(_agentsSorted[i].patrimoine);
+            if (impotAgent <= 0f) continue;
 
             if (impotAgent <= _agentsSorted[i].liquide)
             {
@@ -186,17 +200,39 @@ public class PopulationManager : MonoBehaviour
                 _agentsSorted[i].liquide = 0f;
                 _agentsSorted[i].dur = Mathf.Max(0f, _agentsSorted[i].dur - reste);
             }
-
             _agentsSorted[i].SyncTotal();
         }
     }
 
 
+
     /// <summary>
-    /// Ajoute la croissance annuelle.
-    /// Si égalitaire : chaque agent reçoit la même part.
-    /// Sinon : proportionnellement au patrimoine.
+    /// Applique la croissance annuelle du patrimoine.
+    /// 
+    /// Deux modes sont possibles :
+    /// - Mode égalitaire : chaque agent reçoit la même part de la croissance.
+    /// - Mode "Piketty" : le rendement du capital croît avec le patrimoine.
+    /// 
+    /// Inspiré des travaux de T. Piketty : dans la réalité, les pauvres ont un rendement quasi nul,
+    /// les classes moyennes ~2-3%, les riches ~4-5% et les ultra-riches ~6-8%.
+    /// Cela signifie que la croissance moyenne (2% par ex.) cache en fait une très forte hétérogénéité.
+    /// 
+    /// Ici on approxime ce mécanisme :
+    /// - Sous le seuil de pauvreté (60% de la médiane) : pas de croissance.
+    /// - Entre pauvreté et médiane : petit rendement (quasi nul).
+    /// - Au-dessus de la médiane : rendement croissant avec le patrimoine, 
+    ///   accéléré par une fonction quadratique, de sorte que les plus riches
+    ///   captent plusieurs fois plus de croissance que les classes moyennes.
+    /// 
+    /// Ce design permet de reproduire le fait stylisé que, même avec impôts progressifs,
+    /// les inégalités persistent ou s’aggravent, car le moteur de croissance
+    /// des plus riches est structurellement plus puissant.
     /// </summary>
+    /// 
+
+    public float AccelerationDeLaRepartitionDeLaCroissance = 8.0f; // exposant par défaut
+                                                                   //public float BaseLogarithme = 2f; // 2 à 20 : contrôle la concentration de la croissance
+
     public void AppliquerCroissance()
     {
         if (_agentsSorted == null || _agentsSorted.Length == 0) return;
@@ -209,6 +245,7 @@ public class PopulationManager : MonoBehaviour
 
         if (croissanceEgalitaire)
         {
+            // --- Mode égalitaire : tout le monde reçoit la même somme absolue
             float gain = delta / _agentsSorted.Length;
             for (int i = 0; i < _agentsSorted.Length; i++)
             {
@@ -218,14 +255,211 @@ public class PopulationManager : MonoBehaviour
         }
         else
         {
-            for (int i = 0; i < _agentsSorted.Length; i++)
+            if (repartitionNaturelle)
             {
-                float part = _agentsSorted[i].patrimoine / totalWealth;
-                _agentsSorted[i].liquide += delta * part;
-                _agentsSorted[i].SyncTotal();
+                // --- Mode "répartition naturelle" (progression géométrique) ---
+                int n = _agentsSorted.Length;
+                float median = ComputeMedianFromSorted(_agentsSorted);
+
+                // Étape 1 : calcul des poids selon patrimoine relatif
+                float[] poids = new float[n];
+                float sommePoids = 0f;
+
+                float patrimoineMax = _agentsSorted[n - 1].patrimoine;
+
+                for (int i = 0; i < n; i++)
+                {
+                    float p = _agentsSorted[i].patrimoine;
+                    if (p <= median)
+                    {
+                        poids[i] = 0f; // pas de croissance sous ou à la médiane
+                    }
+                    else
+                    {
+                        // ratio 0..1 de la distance médiane → max
+                        float ratio = (p - median) / Mathf.Max(1e-6f, patrimoineMax - median);
+                        // Progression géométrique
+                        poids[i] = Mathf.Pow(ratio, expoNaturel);
+                    }
+                    sommePoids += poids[i];
+                }
+
+                if (sommePoids <= 0f) return;
+
+                // Étape 2 : distribuer delta proportionnellement aux poids
+                float[] gains = new float[n];
+                for (int i = 0; i < n; i++)
+                {
+                    float gain = delta * (poids[i] / sommePoids);
+                    gains[i] = gain;
+                    _agentsSorted[i].liquide += gain;
+                    _agentsSorted[i].SyncTotal();
+                }
+
+                // Étape 3 : stocker pour tooltips par centile
+                int nbCentiles = 100;
+                int tailleCentile = Mathf.Max(1, n / nbCentiles);
+                if (_croissanceParCentile == null || _croissanceParCentile.Length != nbCentiles)
+                    _croissanceParCentile = new float[nbCentiles];
+                if (_partCroissanceParCentile == null || _partCroissanceParCentile.Length != nbCentiles)
+                    _partCroissanceParCentile = new float[nbCentiles];
+
+                for (int c = 0; c < nbCentiles; c++)
+                {
+                    int start = c * tailleCentile;
+                    int end = (c == nbCentiles - 1) ? n : (c + 1) * tailleCentile;
+
+                    float sumPat = 0f, sumGain = 0f;
+                    for (int i = start; i < end; i++)
+                    {
+                        sumPat += _agentsSorted[i].patrimoine;
+                        sumGain += gains[i];
+                    }
+
+                    _croissanceParCentile[c] = (sumPat > 0f) ? (sumGain / sumPat) : 0f;
+                    _partCroissanceParCentile[c] = (delta > 0f) ? (sumGain / delta) : 0f;
+                }
+            }
+            else
+            {
+                // --- Mode inégalitaire : répartition par Lorenz ---
+                int n = _agentsSorted.Length;
+                int nbCentiles = 100;
+                int tailleCentile = Mathf.Max(1, n / nbCentiles);
+
+                float giniActuel = stats.gini;
+                float giniNaturel = 0.8f;
+                float[] parts = RepartirCroissanceLorenz(
+                    giniActuel, giniNaturel, delta,
+                    lorenzIntensite, giniDiviseur, partsGamma);
+
+                for (int c = 0; c < nbCentiles; c++)
+                {
+                    int start = c * tailleCentile;
+                    int end = (c == nbCentiles - 1) ? n : (c + 1) * tailleCentile;
+
+                    float deltaCentile = delta * parts[c];
+
+                    if (_partCroissanceParCentile == null || _partCroissanceParCentile.Length != nbCentiles)
+                        _partCroissanceParCentile = new float[nbCentiles];
+                    _partCroissanceParCentile[c] = deltaCentile / delta;
+
+                    float patrimoineCentile = 0f;
+                    for (int i = start; i < end; i++) patrimoineCentile += _agentsSorted[i].patrimoine;
+                    if (patrimoineCentile <= 0f) continue;
+
+                    if (_croissanceParCentile == null || _croissanceParCentile.Length != nbCentiles)
+                        _croissanceParCentile = new float[nbCentiles];
+                    _croissanceParCentile[c] = deltaCentile / patrimoineCentile;
+
+                    for (int i = start; i < end; i++)
+                    {
+                        float part = _agentsSorted[i].patrimoine / patrimoineCentile;
+                        float gain = deltaCentile * part;
+                        _agentsSorted[i].liquide += gain;
+                        _agentsSorted[i].SyncTotal();
+                    }
+                }
             }
         }
     }
+
+
+
+
+    private float[] _croissanceParCentile; // croissance relative (taux) pour chaque centile
+    private float[] _partCroissanceParCentile;
+    public float GetPartCroissancePourCentile(int indexCentile)
+    {
+        if (_partCroissanceParCentile == null) return 0f;
+        if (indexCentile < 0 || indexCentile >= _partCroissanceParCentile.Length) return 0f;
+        return _partCroissanceParCentile[indexCentile]; // ex: 0.12 = 12%
+    }
+
+
+    public float GetCroissancePourCentile(int indexCentile)
+    {
+        if (_croissanceParCentile == null) return 0f;
+        if (indexCentile < 0 || indexCentile >= _croissanceParCentile.Length) return 0f;
+        return _croissanceParCentile[indexCentile]; // ex: 0.025 = 2.5%
+    }
+
+
+    [Header("Lorenz – Réglages")]
+    [Range(0f, 1f)] public float lorenzIntensite = 0.8f;   // λ : 0 = nul, 1 = plein effet
+    [Range(1f, 5f)] public float giniDiviseur = 3f;      // divise la sévérité de la cible (2 ou 3)
+    [Range(0.2f, 1f)] public float partsGamma = 0.2f;     // γ : <1 aplatit, 1 = neutre
+    public float giniCible = 0.7f;                         // cible “idéologique” (avant division)
+
+
+    /// <summary>
+    /// Répartit la croissance ΔW entre les centiles en utilisant une interpolation de courbes de Lorenz.
+    /// - giniActuel : calculé sur la population courante
+    /// - giniCible : valeur cible vers laquelle on tend
+    /// - delta : montant total de croissance à distribuer
+    /// - lambda : intensité du déplacement vers la cible (0..1)
+    /// - giniDiviseur : facteur de division de la distance (adouci la cible)
+    /// - gamma : aplatissement des parts (0.2..1)
+    /// 
+    /// Retourne un tableau gParts[i] dont la somme = 1.
+    /// </summary>
+    private float[] RepartirCroissanceLorenz(
+    float giniActuel, float giniCible, float delta,
+    float lambda, float giniDiviseur, float gamma)
+    {
+        int nbCentiles = 100;
+        float[] gParts = new float[nbCentiles];
+        if (delta <= 0f) return gParts;
+
+        float BetaFromGini(float g) => (1f + g) / (1f - g + 1e-6f);
+
+        // --- cible adoucie ---
+        float giniCibleEff = Mathf.Clamp01(giniCible / Mathf.Max(1e-6f, giniDiviseur));   // <<<
+        float betaActuel = BetaFromGini(giniActuel);
+        float betaCible = BetaFromGini(giniCibleEff);                                   // <<<
+
+        float[] L0 = new float[nbCentiles + 1];
+        float[] Lstar = new float[nbCentiles + 1];
+        float[] Lnew = new float[nbCentiles + 1];
+
+        for (int k = 0; k <= nbCentiles; k++)
+        {
+            float p = k / (float)nbCentiles;
+            L0[k] = Mathf.Pow(p, betaActuel);
+            Lstar[k] = Mathf.Pow(p, betaCible);
+            Lnew[k] = (1f - lambda) * L0[k] + lambda * Lstar[k];                          // <<<
+        }
+
+        var stats = GetTotals();
+        float W0 = stats.totalWealth;
+
+        float[] Gcum = new float[nbCentiles + 1];
+        for (int k = 0; k <= nbCentiles; k++)
+        {
+            Gcum[k] = ((W0 + delta) * Lnew[k] - W0 * L0[k]) / delta;
+            if (k > 0 && Gcum[k] < Gcum[k - 1]) Gcum[k] = Gcum[k - 1];
+        }
+
+        for (int i = 0; i < nbCentiles; i++)
+            gParts[i] = Mathf.Max(0f, Gcum[i + 1] - Gcum[i]);
+
+        // --- aplatissement doux : g[i] <- g[i]^γ puis renormalisation ---
+        gamma = Mathf.Clamp(gamma, 0.2f, 1f);                                               // <<<
+        float sumPow = 0f;
+        for (int i = 0; i < nbCentiles; i++)
+        {
+            gParts[i] = Mathf.Pow(gParts[i], gamma);                                        // <<<
+            sumPow += gParts[i];
+        }
+        if (sumPow > 1e-8f)
+            for (int i = 0; i < nbCentiles; i++) gParts[i] /= sumPow;                       // <<<
+
+        return gParts;
+    }
+
+
+
+
 
     /// <summary>
     /// Ajoute le salaire épargné de l’année.
@@ -376,14 +610,13 @@ public class PopulationManager : MonoBehaviour
     }
 
 
+    // --- Construction interne de la barre dans l'UI ---
     // --- Construction interne ---
     private void ConstruireBarrePatrimoine()
     {
         if (panelPatrimoine == null) return;
 
-        var stats = GetTotals();
-
-        // NOUVEAU
+        // Totaux actuels (liquide/dur)
         float liquide = 0f, dur = 0f;
         if (_agentsSorted != null)
         {
@@ -395,15 +628,12 @@ public class PopulationManager : MonoBehaviour
         }
         float total = liquide + dur;
 
-
+        // Impôts courants
         float impot = (impotManager != null) ? impotManager.TotalImpots : 0f;
 
-
+        // Répartition affichée (après soustraction des impôts)
         float liquideAffiche = 0f;
         float durAffiche = 0f;
-        float consoAffiche = 0f;
-
-        
         float impotAffiche = 0f;
 
         if (impot <= 0f)
@@ -430,29 +660,62 @@ public class PopulationManager : MonoBehaviour
             impotAffiche = total;
         }
 
-
+        // Croissance + épargne (réinjection)
         float croissance = total * croissanceTaux;
         float epargne = (bienVitauxManager != null) ? bienVitauxManager.SalaireEpargneActuel : 0f;
-
-        // On additionne croissance + épargne
         float reinjection = croissance + epargne;
 
-        // --- Affichage avec la scale figée ---
-        float y = 0f;
-
-        SetSegmentAndLabel(segPatrimoineDur, labelPatrimoineDur, durAffiche * patrimoineScale, ref y);
-        SetSegmentAndLabel(segPatrimoineLiquide, labelPatrimoineLiquide, liquideAffiche * patrimoineScale, ref y);
-        SetSegmentAndLabel(segConsommation, labelConsommation, impotAffiche * patrimoineScale, ref y);
-        SetSegmentAndLabel(segCroissance, labelCroissance, reinjection * patrimoineScale, ref y);
-
-
-        // Reste
+        // ----- Détermination du facteur de compression (puissances de 2) -----
         float maxHeight = panelPatrimoine.rect.height;
+        float sumSegmentsUnscaled = (durAffiche + liquideAffiche + impotAffiche + reinjection) * patrimoineScale;
+
+        // 1) Compression si nécessaire (jusqu'à tenir dans le panel)
+        int cf = Mathf.Max(1, compressionFactor);
+        while (sumSegmentsUnscaled / cf > maxHeight) cf *= 2;
+
+        // 2) Décompression si trop petit (< 50%) et qu'on peut encore tenir après division par 2
+        while (cf > 1
+               && (sumSegmentsUnscaled / cf) < (maxHeight * 0.5f)
+               && (sumSegmentsUnscaled / (cf / 2)) <= maxHeight)
+        {
+            cf /= 2;
+        }
+        compressionFactor = cf;
+
+        // Échelle effective (sans toucher à patrimoineScale)
+        float appliedScale = patrimoineScale / compressionFactor;
+
+        // ----- Dessin des segments -----
+        float y = 0f;
+        float hDur = durAffiche * appliedScale;
+        float hLiq = liquideAffiche * appliedScale;
+        float hImp = impotAffiche * appliedScale;
+        float hReinj = reinjection * appliedScale;
+
+        SetSegmentAndLabel(segPatrimoineDur, labelPatrimoineDur, hDur, ref y);
+        SetSegmentAndLabel(segPatrimoineLiquide, labelPatrimoineLiquide, hLiq, ref y);
+        SetSegmentAndLabel(segConsommation, labelConsommation, hImp, ref y);
+        SetSegmentAndLabel(segCroissance, labelCroissance, hReinj, ref y);
+
+        // Segment "reste" pour remplir jusqu'au haut
         float resteHeight = Mathf.Max(0f, maxHeight - y);
         SetSegment(segReste, resteHeight, ref y);
 
+        // Label du facteur (affiché seulement si > 1)
+        if (labelCompression)
+        {
+            bool show = (compressionFactor > 1);
+            labelCompression.gameObject.SetActive(show);
+            if (show) labelCompression.text = "÷" + compressionFactor;
+        }
+
+        // Dette (inchangé)
         ConstruireBarreDette();
     }
+
+
+
+
 
     private void SetSegmentAndLabel(RectTransform segment, TMP_Text label, float height, ref float y)
     {
@@ -589,6 +852,7 @@ public class PopulationManager : MonoBehaviour
 
         // 5) Trouver le max pour l’échelle (UI)
         float maxFortune = 0f;
+
         for (int i = 0; i < _centilesSums.Length; i++)
             if (_centilesSums[i] > maxFortune) maxFortune = _centilesSums[i];
         if (maxFortune <= 0f) maxFortune = 1f;
@@ -602,20 +866,33 @@ public class PopulationManager : MonoBehaviour
             var barre = Instantiate(prefabBarreCentile, panelCentiles);
             var rt = barre.GetComponent<RectTransform>();
 
-            float hNorm = _centilesSums[i] / maxFortune;   // 0..1
+            
+            float hNorm = _centilesSums[i] / maxFortune;
             float hPix = Mathf.Max(0f, panelCentiles.rect.height * hNorm);
-            rt.sizeDelta = new Vector2(rt.sizeDelta.x, hPix); // largeur = LayoutElement
+            rt.sizeDelta = new Vector2(rt.sizeDelta.x, hPix);
+
+            var declencheur = barre.GetComponent<TooltipDeclencheur>()
+                              ?? barre.AddComponent<TooltipDeclencheur>();
+            declencheur.indexCentile = i;
+            declencheur.delaiApparition = 0f;
+
+            var img = barre.GetComponent<UnityEngine.UI.Image>()
+                      ?? barre.AddComponent<UnityEngine.UI.Image>();
+            img.raycastTarget = true;
+            if (img.color.a <= 0f)
+                img.color = new Color(img.color.r, img.color.g, img.color.b, 0.001f);
 
             _barresCentiles.Add(barre);
+            // Debug.Log($"Barre {i}: Width={rt.sizeDelta.x}, Height={rt.sizeDelta.y}, RaycastTarget={img.raycastTarget}, Alpha={img.color.a}");
+
+
         }
+
 
         // 7) MAJ HUD stats
         UpdateStatsUI();
 
     }
-
-
-
 
 
 

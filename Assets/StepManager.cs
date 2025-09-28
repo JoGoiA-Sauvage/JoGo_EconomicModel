@@ -70,19 +70,18 @@ public class StepManager : MonoBehaviour
 
         if (impotManager.toggleAutoTaux && impotManager.toggleAutoTaux.isOn)
             impotManager.RecalculerTauxAutomatique();
-        
 
-        // 6) Mettre à jour l’UI et les calculs finaux
-        MettreAJourSysteme();
+        // 8) Recalculer les impôts détaillés avec le nouveau patrimoine
+        impotManager.UpdateTranchesUI();
+        impotManager.CalculerImpotsDetail();
 
         // 7) Recalculer et afficher les stats
         populationManager.RecalculerCentiles();
         populationManager.UpdateStatsUI();
 
-        // 8) Recalculer les impôts détaillés avec le nouveau patrimoine
-        impotManager.UpdateTranchesUI();
-        impotManager.CalculerImpotsDetail();
-        
+        // 6) Mettre à jour l’UI et les calculs finaux
+        MettreAJourSysteme();
+
     }
 
 
@@ -99,8 +98,24 @@ public class StepManager : MonoBehaviour
     // Fonction appelée par bouton "+10 ans"
     public void BoutonPlusDixAns()
     {
+        if (tempusCoroutine == null)   // évite de superposer plusieurs coroutines
+            tempusCoroutine = StartCoroutine(PlusDixAnsRoutine());
+    }
+
+    private IEnumerator PlusDixAnsRoutine()
+    {
         for (int i = 0; i < 10; i++)
+        {
             BoucleSurUnAn();
+
+            // lire vitesse (boucles par seconde) depuis le slider
+            float vitesse = (sliderVitesseTemps != null) ? sliderVitesseTemps.value : 1f;
+            float delay = 1f / Mathf.Max(0.0001f, vitesse);
+
+            yield return new WaitForSeconds(delay);
+        }
+
+        tempusCoroutine = null; // libérer la référence pour permettre un nouvel appel
     }
 
     // Fonction appelée par bouton "tempus fugit" (toggle on/off)

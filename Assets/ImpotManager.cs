@@ -110,7 +110,7 @@ public class ImpotManager : MonoBehaviour
             dropdownZoom.onValueChanged.AddListener(OnZoomChanged);
 
             // >>> Forcer le 20× au lancement
-            // Essaie d’abord de trouver "20×", sinon prend la dernière option.
+            // Essaie d’abord de trouver "40×", sinon prend la dernière option.
             int idx20 = dropdownZoom.options.FindIndex(o => o.text.Trim().StartsWith("40"));
             if (idx20 < 0) idx20 = Mathf.Max(0, dropdownZoom.options.Count - 1);
             dropdownZoom.SetValueWithoutNotify(idx20);
@@ -193,6 +193,9 @@ public class ImpotManager : MonoBehaviour
     }
 
     /// <summary> Calcule la somme totale et la répartit par tranches. </summary>
+    /// <summary>
+    /// Calcule la somme totale et la répartit marginalement par tranches.
+    /// </summary>
     public void CalculerImpotsDetail()
     {
         // reset
@@ -208,38 +211,90 @@ public class ImpotManager : MonoBehaviour
             float valeur = agent.patrimoine;
             if (valeur <= 0f) continue;
 
-            // Tranche d’appartenance de l’agent (sa tranche "finale")
-            int tranche = TrouverTranche(valeur);
+            float prevMax = 0f;
 
-            // Montant d’impôt réel (toujours calculé marginalement)
-            float imp = CalculerImpotsPourValeur(valeur);
+            for (int i = 0; i < seuils.Length; i++)
+            {
+                // borne haute de la tranche i
+                float borne = (i < seuils.Length - 1) ? seuils[i] : float.PositiveInfinity;
 
-            // >>> On attribue TOUT l’impôt de cet agent à SA tranche
-            _impotsParTranche[tranche] += imp;
-            TotalImpots += imp;
+                // portion taxable dans cette tranche
+                float taxable = Mathf.Clamp(valeur - prevMax, 0f, borne - prevMax);
+                if (taxable <= 0f) { prevMax = borne; continue; }
+
+                float imp = taxable * (taux[i] * 0.01f);
+                _impotsParTranche[i] += imp;
+                TotalImpots += imp;
+
+                prevMax = borne;
+
+                // si on a épuisé la valeur de l’agent, on arrête
+                if (valeur <= borne) break;
+            }
         }
     }
+
+    public float CalculerImpotsAgent(float patrimoine)
+    {
+        return CalculerImpotsPourValeur(patrimoine); // méthode privée existante
+    }
+
+
+    private float CalculerImpotsPourValeur(float valeur)
+    {
+        if (valeur <= 0f) return 0f;
+
+        float montant = 0f;
+        float prevMax = 0f;
+
+        for (int i = 0; i < seuils.Length; i++)
+        {
+            float borne = (i < seuils.Length - 1) ? seuils[i] : float.PositiveInfinity;
+
+            float taxable = Mathf.Clamp(valeur - prevMax, 0f, borne - prevMax);
+            if (taxable <= 0f) { prevMax = borne; continue; }
+
+            montant += taxable * (taux[i] * 0.01f);
+
+            prevMax = borne;
+            if (valeur <= borne) break;
+        }
+        return montant;
+    }
+
+
 
 
     /// <summary> Met à jour la barre verticale d’impôts. </summary>
     public void MettreAJourBarreImpots()
     {
-        if (panelImpots == null) return;
-        if (populationManager == null) return;
-        if (TotalImpots <= 0f) return;
+        if (panelImpots == null || populationManager == null) return;
 
-        // Utiliser exactement la même échelle que la barre patrimoine
         float scale = populationManager.patrimoineScale * Mathf.Max(1e-6f, facteurZoom);
 
-
+        // --- Impôts par tranche (basique et robuste) ---
         float y = 0f;
-        SetSegment(segImpotTranche1, _impotsParTranche[0] * scale, ref y);
-        SetSegment(segImpotTranche2, _impotsParTranche[1] * scale, ref y);
-        SetSegment(segImpotTranche3, _impotsParTranche[2] * scale, ref y);
-        SetSegment(segImpotTranche4, _impotsParTranche[3] * scale, ref y);
-        SetSegment(segImpotTranche5, _impotsParTranche[4] * scale, ref y);
+        for (int i = 0; i < _impotsParTranche.Length; i++)
+        {
+            float h = _impotsParTranche[i] * scale;
+            var rt = GetImpotSegmentRT(i);
 
-        // -----colonne "retour au patrimoine"---- -
+            if (rt == null) continue;
+
+            if (h > 0f)
+            {
+                rt.gameObject.SetActive(true);
+                rt.sizeDelta = new Vector2(rt.sizeDelta.x, h);
+                rt.anchoredPosition = new Vector2(rt.anchoredPosition.x, y);
+                y += h;
+            }
+            else
+            {
+                rt.gameObject.SetActive(false);
+            }
+        }
+
+        // --- Retour au patrimoine (toujours affiché) ---
         float epargne = (bienVitauxManager != null) ? bienVitauxManager.SalaireEpargneActuel : 0f;
         var totals = populationManager.GetTotals();
         float croissance = totals.totalWealth * populationManager.croissanceTaux;
@@ -250,14 +305,21 @@ public class ImpotManager : MonoBehaviour
 
         if (imgRetourEpargne) imgRetourEpargne.gameObject.SetActive(epargne > 0f);
         if (imgRetourCroissance) imgRetourCroissance.gameObject.SetActive(croissance > 0f);
-
-
-        /*
-        Debug.Log($"[Impots] TotalImpots={TotalImpots}, PatrimoineTotal={populationManager.GetTotals().totalWealth}, " +
-          $"Ratio={(TotalImpots / populationManager.GetTotals().totalWealth):P2}, " +
-          $"HauteurImpots={TotalImpots * populationManager.patrimoineScale}");
-        */
     }
+
+    private RectTransform GetImpotSegmentRT(int i)
+    {
+        switch (i)
+        {
+            case 0: return segImpotTranche1;
+            case 1: return segImpotTranche2;
+            case 2: return segImpotTranche3;
+            case 3: return segImpotTranche4;
+            case 4: return segImpotTranche5;
+            default: return null;
+        }
+    }
+
 
 
 
@@ -270,32 +332,8 @@ public class ImpotManager : MonoBehaviour
         y += height;
     }
 
-    private float CalculerImpotsPourValeur(float valeur)
-    {
-        if (valeur <= 0f) return 0f;
+    
 
-        float montant = 0f;
-        float prevMax = 0f;
-
-        for (int i = 0; i < seuils.Length; i++)
-        {
-            // Pour un seul agent, la tranche 5 est bornée à 'valeur'
-            float upper = (i < seuils.Length - 1) ? seuils[i] : valeur;
-            upper = Mathf.Min(upper, valeur);
-
-            float span = Mathf.Max(0f, upper - prevMax);
-            if (span <= 0f) { prevMax = upper; continue; }
-
-            float abovePrev = Mathf.Max(0f, valeur - prevMax);
-            float taxable = Mathf.Min(abovePrev, span);
-            if (taxable > 0f)
-                montant += taxable * (taux[i] * 0.01f);
-
-            prevMax = upper;
-            if (valeur <= upper) break;
-        }
-        return montant;
-    }
 
 
     public void UpdateTranchesUI()
@@ -390,9 +428,6 @@ public class ImpotManager : MonoBehaviour
         if (inputSeuil4) inputSeuil4.SetTextWithoutNotify(seuilsAuto[3].ToString("0", System.Globalization.CultureInfo.InvariantCulture));
         if (inputSeuil5) inputSeuil5.SetTextWithoutNotify(seuilsAuto[4].ToString("0", System.Globalization.CultureInfo.InvariantCulture));
 
-        // Recalcule tout le système (population, barres, total impôts avec log)
-        // FindObjectOfType<StepManager>()?.ReinitialiserSysteme();
-
     }
 
 
@@ -430,7 +465,7 @@ public class ImpotManager : MonoBehaviour
         for (int i = 0; i < n; i++)
         {
             float r = Mathf.Max(0f, s * M[i] * 100f); // en %
-            newRates[i] = Mathf.RoundToInt(r);
+            newRates[i] = Mathf.RoundToInt(Mathf.Min(r, 100f));
         }
         SetTaux(newRates); // met à jour les 5 champs sans déclencher de listeners
 
@@ -531,6 +566,7 @@ public class ImpotManager : MonoBehaviour
             foreach (var preset in loadedPresets.presets)
                 options.Add(preset.name);
             dropdownPresets.AddOptions(options);
+            dropdownPresets.SetValueWithoutNotify(2);
         }
     }
 

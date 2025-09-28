@@ -591,6 +591,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   message: "Part de la richesse d\xE9tenue par les 1 % les plus riches."
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &30367821
 CanvasRenderer:
@@ -742,6 +743,7 @@ MonoBehaviour:
   message: "Le pays produit de la valeur et le taux de croissance repr\xE9sente l'augmentation
     globale du patrimoine chaque ann\xE9e.\n\nLa croissance en France en 2024 est
     de 1.2% selon l'Insee (en baisse)\nOn pr\xE9voit 0.8% pour 2025."
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &66804652
 CanvasRenderer:
@@ -860,7 +862,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "150000\u200B"
+  m_text: "200000\u200B"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -994,7 +996,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "127442\u200B"
+  m_text: "207441\u200B"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -2045,7 +2047,7 @@ MonoBehaviour:
   m_CaretColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
   m_CustomCaretColor: 0
   m_SelectionColor: {r: 0.65882355, g: 0.80784315, b: 1, a: 0.7529412}
-  m_Text: 100000
+  m_Text: 150000
   m_CaretBlinkRate: 0.85
   m_CaretWidth: 1
   m_ReadOnly: 0
@@ -2824,6 +2826,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   message: "Part de la richesse d\xE9tenue par les 1 % les plus riches."
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &213510149
 CanvasRenderer:
@@ -4454,6 +4457,7 @@ MonoBehaviour:
     du co\xFBt de production (aggr\xE9g\xE9 SNF, 2017).\n\nEn moyenne, 20% des co\xFBt
     interm\xE9diaire sont de l'importation.\n\nOn va donc mettre \n- 46% en usure
     \n- 12% en importation\n- 42% en slaire (ce qui n'est pas des CI)\n"
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &360775328
 CanvasRenderer:
@@ -4514,6 +4518,9 @@ MonoBehaviour:
   inputCroissance: {fileID: 1047560270}
   toggleCroissanceEgalitaire: {fileID: 1087477794}
   sliderCroissance: {fileID: 995900211}
+  toggleRepartitionNaturelle: {fileID: 946867771}
+  repartitionNaturelle: 1
+  expoNaturel: 1
   bienVitauxManager: {fileID: 897485739}
   impotManager: {fileID: 1742951576}
   panelPatrimoine: {fileID: 1785005842}
@@ -4527,11 +4534,17 @@ MonoBehaviour:
   labelPatrimoineLiquide: {fileID: 1932917141}
   labelConsommation: {fileID: 760103517}
   labelCroissance: {fileID: 1632432520}
+  labelCompression: {fileID: 1964551541}
   panelDette: {fileID: 210954041}
   segDette: {fileID: 462979907}
   labelDette: {fileID: 1733034487}
   detteTotale: 0
   labelToursDette: {fileID: 949872222}
+  AccelerationDeLaRepartitionDeLaCroissance: 2
+  lorenzIntensite: 0.5
+  giniDiviseur: 2
+  partsGamma: 0.8
+  giniCible: 0.6
 --- !u!4 &362209961
 Transform:
   m_ObjectHideFlags: 0
@@ -4581,7 +4594,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 187.5}
+  m_AnchoredPosition: {x: 0, y: 193}
   m_SizeDelta: {x: 302, y: 24}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &362362001
@@ -5209,7 +5222,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "5\u200B"
+  m_text: "5\n\u200B"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -5991,6 +6004,7 @@ MonoBehaviour:
     des biens vitaux la production de la valeur qu'on va exporter.\nCa augmente d'autant
     le co\xFBt du salaire, de l'usure et de l'import, afin de compenser le co\xFBt
     de l'importation."
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &427015985
 CanvasRenderer:
@@ -7438,6 +7452,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   message: "Reset le syst\xE8me dans sa situation de d\xE9part."
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &530363154
 CanvasRenderer:
@@ -7820,6 +7835,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   message: "Part de la richesse d\xE9tenue par les 1 % les plus riches."
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &547460745
 CanvasRenderer:
@@ -8124,6 +8140,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   message: "Part de la richesse d\xE9tenue par les 1 % les plus riches."
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &556477368
 CanvasRenderer:
@@ -9032,8 +9049,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 160.8, y: -370.9}
-  m_SizeDelta: {x: 300, y: 400}
+  m_AnchoredPosition: {x: 160.8, y: -378.1}
+  m_SizeDelta: {x: 300, y: 410}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &609687730
 MonoBehaviour:
@@ -9291,6 +9308,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   message: "Part de la richesse d\xE9tenue par les 10 % les plus riches."
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &610168160
 CanvasRenderer:
@@ -9992,7 +10010,7 @@ MonoBehaviour:
   m_CaretColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
   m_CustomCaretColor: 0
   m_SelectionColor: {r: 0.65882355, g: 0.80784315, b: 1, a: 0.7529412}
-  m_Text: 150000
+  m_Text: 200000
   m_CaretBlinkRate: 0.85
   m_CaretWidth: 1
   m_ReadOnly: 0
@@ -10813,6 +10831,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   message: "Part de la richesse d\xE9tenue par les 1 % les plus riches."
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &746165168
 CanvasRenderer:
@@ -10931,7 +10950,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "100000\u200B"
+  m_text: "150000\u200B"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -12583,7 +12602,6 @@ GameObject:
   m_Component:
   - component: {fileID: 822868072}
   - component: {fileID: 822868075}
-  - component: {fileID: 822868074}
   - component: {fileID: 822868073}
   m_Layer: 5
   m_Name: segCroissance
@@ -12641,20 +12659,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &822868074
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 822868071}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c109f53c680056642a8354c2ef32e871, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  message: 
-  delaiApparition: 0
 --- !u!222 &822868075
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -13014,6 +13018,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   message: "Le nombre fixe de gens dans le pays\n(evitez d'en mettre mille milliard,
     \xE7a risque de chauffer...)"
+  indexCentile: -1
   delaiApparition: 0
 --- !u!1 &896477119
 GameObject:
@@ -13370,6 +13375,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   message: "Patrimoine \u201Cdu milieu\u201D : \n50 % des agents ont moins, \n50
     % ont plus. \nPlus repr\xE9sentatif en cas d\u2019in\xE9galit\xE9s."
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &898802163
 CanvasRenderer:
@@ -13378,6 +13384,82 @@ CanvasRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 898802159}
+  m_CullTransparentMesh: 1
+--- !u!1 &933392341
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 933392342}
+  - component: {fileID: 933392344}
+  - component: {fileID: 933392343}
+  m_Layer: 5
+  m_Name: Background
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &933392342
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 933392341}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 2031783652}
+  m_Father: {fileID: 946867770}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 10, y: -10}
+  m_SizeDelta: {x: 20, y: 20}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &933392343
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 933392341}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  m_Type: 1
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &933392344
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 933392341}
   m_CullTransparentMesh: 1
 --- !u!1 &944869573
 GameObject:
@@ -13529,7 +13611,94 @@ MonoBehaviour:
   message: "Si cette case est coch\xE9e, on recalcul les taux d'imposition chaque
     ann\xE9e afin d'\xEAtre certain de couvrir toutes les d\xE9penses li\xE9es \xE0
     la production de bien vitaux."
+  indexCentile: -1
   delaiApparition: 0
+--- !u!1 &946867769
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 946867770}
+  - component: {fileID: 946867771}
+  m_Layer: 5
+  m_Name: RedistributionNaturelle_Toggle
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &946867770
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 946867769}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children:
+  - {fileID: 933392342}
+  - {fileID: 1251109369}
+  m_Father: {fileID: 1060589302}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 230.1, y: -558.7}
+  m_SizeDelta: {x: 20, y: 20}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &946867771
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 946867769}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9085046f02f69544eb97fd06b6048fe2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 0.509434, g: 0.509434, b: 0.509434, a: 1}
+    m_HighlightedColor: {r: 0.5943396, g: 0.5943396, b: 0.5943396, a: 1}
+    m_PressedColor: {r: 0.59607846, g: 0.59607846, b: 0.59607846, a: 1}
+    m_SelectedColor: {r: 0.59607846, g: 0.59607846, b: 0.59607846, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 933392343}
+  toggleTransition: 1
+  graphic: {fileID: 2031783653}
+  m_Group: {fileID: 0}
+  onValueChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_IsOn: 1
 --- !u!1 &949872220
 GameObject:
   m_ObjectHideFlags: 0
@@ -13564,8 +13733,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 877.3, y: -694.8}
-  m_SizeDelta: {x: 100, y: 12}
+  m_AnchoredPosition: {x: 887.1, y: -694.8}
+  m_SizeDelta: {x: 80, y: 12}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &949872222
 MonoBehaviour:
@@ -13805,6 +13974,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   message: C'est les sous qu'on doit emprunter pour payer la part de la production
     des biens vitaux
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &951096559
 CanvasRenderer:
@@ -14265,6 +14435,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   message: "Quelle part du co\xFBt de la production des bien vitaux est du SALAIRE
     ?"
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &976591053
 CanvasRenderer:
@@ -15033,6 +15204,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   message: "Le nombre fixe de gens dans le pays\n(evitez d'en mettre mille milliard,
     \xE7a risque de chauffer...)"
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &1016458798
 CanvasRenderer:
@@ -15976,6 +16148,9 @@ RectTransform:
   - {fileID: 1467225668}
   - {fileID: 1087477795}
   - {fileID: 1036533070}
+  - {fileID: 1635020135}
+  - {fileID: 946867770}
+  - {fileID: 1964551540}
   - {fileID: 1785005842}
   - {fileID: 210954041}
   m_Father: {fileID: 1092706525}
@@ -16799,7 +16974,7 @@ RectTransform:
   m_GameObject: {fileID: 1087477793}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.9, y: 0.9, z: 0.9}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 2048468473}
@@ -16808,8 +16983,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 247.4, y: -544.3}
-  m_SizeDelta: {x: 30, y: 30}
+  m_AnchoredPosition: {x: 230.1, y: -536.4}
+  m_SizeDelta: {x: 20, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1092706519
 GameObject:
@@ -17209,6 +17384,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   message: "Part de la richesse d\xE9tenue par les 1 % les plus riches."
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &1099095455
 CanvasRenderer:
@@ -17359,6 +17535,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   message: "Le nombre fixe de gens dans le pays\n(evitez d'en mettre mille milliard,
     \xE7a risque de chauffer...)"
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &1107454011
 CanvasRenderer:
@@ -17659,6 +17836,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   message: "Part de la richesse d\xE9tenue par les 1 % les plus riches."
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &1124549271
 CanvasRenderer:
@@ -18039,7 +18217,7 @@ MonoBehaviour:
   m_CaretColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
   m_CustomCaretColor: 0
   m_SelectionColor: {r: 0.65882355, g: 0.80784315, b: 1, a: 0.7529412}
-  m_Text: 127442
+  m_Text: 207441
   m_CaretBlinkRate: 0.85
   m_CaretWidth: 1
   m_ReadOnly: 0
@@ -18228,7 +18406,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 85.7}
+  m_AnchoredPosition: {x: 0, y: 90.3}
   m_SizeDelta: {x: 302, y: 24}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1166440832
@@ -18842,6 +19020,7 @@ MonoBehaviour:
     d\xE9finir la r\xE9partition de la richesse dans la population, je fais un genre
     de \"tirage\" RNG qui tient compte de ce qu'on peut attendre dans une population
     avec cet indice gini."
+  indexCentile: -1
   delaiApparition: 0
 --- !u!1 &1227488790
 GameObject:
@@ -19077,6 +19256,85 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Padding: {x: -8, y: -5, z: -8, w: -5}
   m_Softness: {x: 0, y: 0}
+--- !u!1 &1251109368
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1251109369}
+  - component: {fileID: 1251109371}
+  - component: {fileID: 1251109370}
+  m_Layer: 5
+  m_Name: Label
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!224 &1251109369
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1251109368}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 946867770}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 10.8, y: -0.5}
+  m_SizeDelta: {x: -28.100006, y: -3}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1251109370
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1251109368}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_FontData:
+    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+    m_FontSize: 14
+    m_FontStyle: 0
+    m_BestFit: 0
+    m_MinSize: 10
+    m_MaxSize: 40
+    m_Alignment: 0
+    m_AlignByGeometry: 0
+    m_RichText: 1
+    m_HorizontalOverflow: 0
+    m_VerticalOverflow: 0
+    m_LineSpacing: 1
+  m_Text: 
+--- !u!222 &1251109371
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1251109368}
+  m_CullTransparentMesh: 1
 --- !u!1 &1254692280
 GameObject:
   m_ObjectHideFlags: 0
@@ -20028,9 +20286,9 @@ MonoBehaviour:
   m_HandleRect: {fileID: 966245614}
   m_Direction: 0
   m_MinValue: 1
-  m_MaxValue: 10
+  m_MaxValue: 30
   m_WholeNumbers: 0
-  m_Value: 5
+  m_Value: 10
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -20047,6 +20305,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   message: "R\xE8gle le nombre d'ann\xE9es qui passent pr seconde.\n1 -> 10"
+  indexCentile: -1
   delaiApparition: 0
 --- !u!1 &1305190591
 GameObject:
@@ -20421,6 +20680,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   message: 
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &1321866051
 CanvasRenderer:
@@ -20587,7 +20847,9 @@ MonoBehaviour:
   message: "Estimation du % de la population b\xE9n\xE9ficiaire.\nEn France, on peut
     l'estimer autour de 15 %.\n- Selon la Fondation pour le Logement des D\xE9favoris\xE9s,
     environ 4,2 millions de personnes sont mal log\xE9es.\n- Les Restos du C\u0153ur
-    aident environ 1,3 million de personnes (souvent les m\xEAmes)."
+    aident environ 1,3 million de personnes (souvent les m\xEAmes).\n\nSelon l'Insee,
+    15.4% de la population fran\xE7aise vit sous le seuil de pauvret\xE9 en 2024."
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &1325984596
 CanvasRenderer:
@@ -21079,6 +21341,7 @@ MonoBehaviour:
   message: "Mesure l\u2019in\xE9galit\xE9 : \n0 = \xE9galit\xE9 parfaite\n1 = in\xE9galit\xE9
     extr\xEAme. \nPlus c\u2019est haut, plus la richesse est concentr\xE9e.\n\nEn
     2024, en France, on est \xE0 0.36"
+  indexCentile: -1
   delaiApparition: 0
 --- !u!1 &1353936542
 GameObject:
@@ -21434,6 +21697,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   message: "Patrimoine moyen = total \xF7 population. Sensible aux tr\xE8s gros patrimoines
     (peut \xEAtre bien > m\xE9diane)."
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &1373729813
 CanvasRenderer:
@@ -22027,6 +22291,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   message: "Part de la richesse d\xE9tenue par les 1 % les plus riches."
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &1393430367
 CanvasRenderer:
@@ -22519,6 +22784,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   message: "Part de la richesse d\xE9tenue par les 1 % les plus riches."
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &1413536162
 CanvasRenderer:
@@ -22890,6 +23156,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   message: "Part de la richesse d\xE9tenue par les 1 % les plus riches."
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &1458775590
 CanvasRenderer:
@@ -22934,7 +23201,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 95.6, y: -541}
+  m_AnchoredPosition: {x: 95.599976, y: -538.10004}
   m_SizeDelta: {x: 180, y: 20.966}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1467225669
@@ -23038,9 +23305,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c109f53c680056642a8354c2ef32e871, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  message: "La croissance est-elle redistribu\xE9e \xE9quitablement entre tous les
-    agent (peu probable ^^) ou proportionnellement au patrimoine de chaque agent
-    (plus je suis riche, plus je b\xE9n\xE9ficie de la croissance) ?"
+  message: "En cochant cette case, on choisi de capter la croissance, sousla forme
+    de cotisations (avant lapropri\xE9t\xE9 lucrative\" et on la redistribue \xE9quitablement
+    \xE0 l'ensemble de lapopualtion (\xE0 travers le salaire \xE0 vie, par exemple).\nLa
+    croissance n'est plus redistribu\xE9e entre les agents en function du patrimoine
+    qu'ils d\xE9tiennent mais elle est redistribu\xE9e \xE8quitablement entre tous
+    les agents du syst\xE8me. \nBref, c'est le communisme."
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &1467225671
 CanvasRenderer:
@@ -23107,7 +23378,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "300000\u200B"
+  m_text: "500000\u200B"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -23459,6 +23730,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   message: "Le nombre fixe de gens dans le pays\n(evitez d'en mettre mille milliard,
     \xE7a risque de chauffer...)"
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &1489989256
 CanvasRenderer:
@@ -23609,6 +23881,7 @@ MonoBehaviour:
   message: "recalcule automatiquement les Taux de pr\xE9l\xE9vement.\nPour chaque
     tranche apr\xE8s la premi\xE8re, on double le taux pour que le total couvre pile
     le cout de production des bien vitaux."
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &1494875057
 CanvasRenderer:
@@ -23833,7 +24106,9 @@ MonoBehaviour:
   m_CaretColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
   m_CustomCaretColor: 0
   m_SelectionColor: {r: 0.65882355, g: 0.80784315, b: 1, a: 0.7529412}
-  m_Text: 5
+  m_Text: '5
+
+'
   m_CaretBlinkRate: 0.85
   m_CaretWidth: 1
   m_ReadOnly: 0
@@ -24060,7 +24335,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 30, y: 30}
+  m_SizeDelta: {x: 20, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1563868396
 GameObject:
@@ -24096,7 +24371,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -81.1}
+  m_AnchoredPosition: {x: 0, y: -75.6}
   m_SizeDelta: {x: 302, y: 24}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1563868398
@@ -24375,7 +24650,7 @@ MonoBehaviour:
   m_CaretColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
   m_CustomCaretColor: 0
   m_SelectionColor: {r: 0.65882355, g: 0.80784315, b: 1, a: 0.7529412}
-  m_Text: '0.36
+  m_Text: '0.3
 
 '
   m_CaretBlinkRate: 0.85
@@ -24934,7 +25209,7 @@ MonoBehaviour:
   m_CaretColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
   m_CustomCaretColor: 0
   m_SelectionColor: {r: 0.65882355, g: 0.80784315, b: 1, a: 0.7529412}
-  m_Text: 300000
+  m_Text: 500000
   m_CaretBlinkRate: 0.85
   m_CaretWidth: 1
   m_ReadOnly: 0
@@ -25136,8 +25411,9 @@ MonoBehaviour:
   message: "Le patrimoine moyen de chaque agent. \nLa moyenne gomme les in\xE9galit\xE9
     de r\xE9partion.\nElle sert \xE0 d\xE9terminer le patrimoine total du pays.\n(patrimoine
     moyen X nombre d'agent = patrimoine total)\n\nEn France, le patrimoine moyen
-    net est de 274 000 \u20AC par m\xE9nage.\nIl y a en moyenne 2.1 agent par m\xE9nage.\nCa
-    fait (en moyenne) 127 442 \u20AC par agent dans mon mod\xE8le incomplet."
+    net est de 440 000 \u20AC par m\xE9nage.\nIl y a en moyenne 2.15 agent par m\xE9nage.\nCa
+    fait (en moyenne) 207\_441 \u20AC par agent dans mon mod\xE8le incomplet."
+  indexCentile: -1
   delaiApparition: 0
 --- !u!1 &1610159119
 GameObject:
@@ -25422,6 +25698,157 @@ CanvasRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1632432518}
+  m_CullTransparentMesh: 1
+--- !u!1 &1635020134
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1635020135}
+  - component: {fileID: 1635020138}
+  - component: {fileID: 1635020137}
+  - component: {fileID: 1635020136}
+  m_Layer: 5
+  m_Name: RedistributionNaturelle_label
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1635020135
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1635020134}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 1060589302}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 95.599976, y: -560.4}
+  m_SizeDelta: {x: 180, y: 20.966}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1635020136
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1635020134}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_text: 'Redistribution naturelle : '
+  m_isRightToLeft: 0
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontSharedMaterials: []
+  m_fontMaterial: {fileID: 0}
+  m_fontMaterials: []
+  m_fontColor32:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+  m_enableVertexGradient: 0
+  m_colorMode: 3
+  m_fontColorGradient:
+    topLeft: {r: 1, g: 1, b: 1, a: 1}
+    topRight: {r: 1, g: 1, b: 1, a: 1}
+    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
+    bottomRight: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColorGradientPreset: {fileID: 0}
+  m_spriteAsset: {fileID: 0}
+  m_tintAllSprites: 0
+  m_StyleSheet: {fileID: 0}
+  m_TextStyleHashCode: -1183493901
+  m_overrideHtmlColors: 0
+  m_faceColor:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontSize: 16
+  m_fontSizeBase: 16
+  m_fontWeight: 400
+  m_enableAutoSizing: 0
+  m_fontSizeMin: 18
+  m_fontSizeMax: 72
+  m_fontStyle: 0
+  m_HorizontalAlignment: 4
+  m_VerticalAlignment: 256
+  m_textAlignment: 65535
+  m_characterSpacing: 0
+  m_wordSpacing: 0
+  m_lineSpacing: 0
+  m_lineSpacingMax: 0
+  m_paragraphSpacing: 0
+  m_charWidthMaxAdj: 0
+  m_enableWordWrapping: 1
+  m_wordWrappingRatios: 0.4
+  m_overflowMode: 0
+  m_linkedTextComponent: {fileID: 0}
+  parentLinkedComponent: {fileID: 0}
+  m_enableKerning: 1
+  m_enableExtraPadding: 0
+  checkPaddingRequired: 0
+  m_isRichText: 1
+  m_parseCtrlCharacters: 1
+  m_isOrthographic: 1
+  m_isCullingEnabled: 0
+  m_horizontalMapping: 0
+  m_verticalMapping: 0
+  m_uvLineOffset: 0
+  m_geometrySortingOrder: 0
+  m_IsTextObjectScaleStatic: 0
+  m_VertexBufferAutoSizeReduction: 0
+  m_useMaxVisibleDescender: 1
+  m_pageToDisplay: 1
+  m_margin: {x: 19.029259, y: 0, z: -28.884552, w: 0}
+  m_isUsingLegacyAnimationComponent: 0
+  m_isVolumetricText: 0
+  m_hasFontAssetChanged: 0
+  m_baseMaterial: {fileID: 0}
+  m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &1635020137
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1635020134}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c109f53c680056642a8354c2ef32e871, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  message: En cochant cette case, Le personne les plus riche ont un gros rendement
+    sur leur patrimoine, le pauvre n'ont pas de rendement sur le patrimoine. (Piketty)
+  indexCentile: -1
+  delaiApparition: 0
+--- !u!222 &1635020138
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1635020134}
   m_CullTransparentMesh: 1
 --- !u!1 &1637010801
 GameObject:
@@ -26227,6 +26654,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   message: "Le nombre fixe de gens dans le pays\n(evitez d'en mettre mille milliard,
     \xE7a risque de chauffer...)"
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &1719495661
 CanvasRenderer:
@@ -26324,7 +26752,7 @@ MonoBehaviour:
   m_Placeholder: {fileID: 0}
   m_ItemText: {fileID: 254836969}
   m_ItemImage: {fileID: 0}
-  m_Value: 0
+  m_Value: 2
   m_Options:
     m_Options: []
   m_OnValueChanged:
@@ -27324,6 +27752,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   message: 
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &1762985775
 CanvasRenderer:
@@ -28063,6 +28492,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   message: "Le nombre fixe de gens dans le pays\n(evitez d'en mettre mille milliard,
     \xE7a risque de chauffer...)"
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &1802066846
 CanvasRenderer:
@@ -28224,6 +28654,7 @@ MonoBehaviour:
     en tranches asym\xE9triques :\n- Tranche 1 : 40 centiles (les plus pauvres)\n-
     Tranche 2 : 30 centiles\n- Tranche 3 : 15 centiles\n- Tranche 4 : 12 centiles\n-
     Tranche 5 : 3 centiles (les plus riches)"
+  indexCentile: -1
   delaiApparition: 0
 --- !u!1 &1829636137
 GameObject:
@@ -28373,6 +28804,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   message: "Part de la richesse d\xE9tenue par les 1 % les plus riches."
+  indexCentile: -1
   delaiApparition: 0
 --- !u!1 &1832367183
 GameObject:
@@ -28960,6 +29392,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   message: "Part de ce qui est d\xE9truit pendant la production \n(co\xFBt interm\xE9diaires)
     :\n- \xE9nergie consomm\xE9e\n- usure des machines\n- gachis..."
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &1859339608
 CanvasRenderer:
@@ -29527,6 +29960,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   message: "Zoomer les barres de cout de production et de collecte d'imp\xF4t."
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &1867282830
 CanvasRenderer:
@@ -29953,6 +30387,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   message: "Si cette case est coch\xE9e, on reclcul la repartition des tranches d'impot
     pour tenir compte de l'\xE9volution des in\xE9galit\xE9."
+  indexCentile: -1
   delaiApparition: 0
 --- !u!1 &1894184087
 GameObject:
@@ -30096,6 +30531,7 @@ MonoBehaviour:
   message: "l'indice gini est recalcul\xE9 \xE0 chaque cycle pour montrer l'\xE9volution
     des in\xE9galit\xE9.\nS'il augmente, les in\xE9glit\xE9 se creusent, \ns'il baisse,
     l'\xE9cart de richesse entre les plus pauvre et les plus riche se r\xE9duit."
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &1894184091
 CanvasRenderer:
@@ -30491,7 +30927,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "200000\u200B"
+  m_text: "280000\u200B"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -30785,6 +31221,7 @@ MonoBehaviour:
   message: "Part de ce qui doit \xEAtre import\xE9 pour la production (ce qu'on ne
     peut pas produire dans notre pays) :\n- P\xE9trole, uranium,...\n- Terres rares,
     cobalt,... \n- Epices bizarres et d\xE9licieuses..."
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &1920759579
 CanvasRenderer:
@@ -31070,6 +31507,7 @@ MonoBehaviour:
   message: "quelle part du salaire des travailleurs retourne dans le patrimoine ?\n(pas
     les cin\xE9 entre potes, pas les bons petits restaus, pas les vacances \xE0 la
     baule, pas le pinard...)\nIl est entre 18 et 19% en France aujourd'hui."
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &1941286095
 CanvasRenderer:
@@ -31401,6 +31839,140 @@ CanvasRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1955453283}
+  m_CullTransparentMesh: 1
+--- !u!1 &1964551539
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1964551540}
+  - component: {fileID: 1964551542}
+  - component: {fileID: 1964551541}
+  m_Layer: 5
+  m_Name: patrimoineCompression_TMP
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1964551540
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1964551539}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1060589302}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 797.1, y: -694.8}
+  m_SizeDelta: {x: 80, y: 12}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1964551541
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1964551539}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_text: New Text
+  m_isRightToLeft: 0
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontSharedMaterials: []
+  m_fontMaterial: {fileID: 0}
+  m_fontMaterials: []
+  m_fontColor32:
+    serializedVersion: 2
+    rgba: 4284669673
+  m_fontColor: {r: 0.91372555, g: 0.8705883, b: 0.38431376, a: 1}
+  m_enableVertexGradient: 0
+  m_colorMode: 3
+  m_fontColorGradient:
+    topLeft: {r: 1, g: 1, b: 1, a: 1}
+    topRight: {r: 1, g: 1, b: 1, a: 1}
+    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
+    bottomRight: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColorGradientPreset: {fileID: 0}
+  m_spriteAsset: {fileID: 0}
+  m_tintAllSprites: 0
+  m_StyleSheet: {fileID: 0}
+  m_TextStyleHashCode: -1183493901
+  m_overrideHtmlColors: 0
+  m_faceColor:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontSize: 12
+  m_fontSizeBase: 12
+  m_fontWeight: 400
+  m_enableAutoSizing: 0
+  m_fontSizeMin: 18
+  m_fontSizeMax: 72
+  m_fontStyle: 0
+  m_HorizontalAlignment: 1
+  m_VerticalAlignment: 256
+  m_textAlignment: 65535
+  m_characterSpacing: 0
+  m_wordSpacing: 0
+  m_lineSpacing: 0
+  m_lineSpacingMax: 0
+  m_paragraphSpacing: 0
+  m_charWidthMaxAdj: 0
+  m_enableWordWrapping: 1
+  m_wordWrappingRatios: 0.4
+  m_overflowMode: 0
+  m_linkedTextComponent: {fileID: 0}
+  parentLinkedComponent: {fileID: 0}
+  m_enableKerning: 1
+  m_enableExtraPadding: 0
+  checkPaddingRequired: 0
+  m_isRichText: 1
+  m_parseCtrlCharacters: 1
+  m_isOrthographic: 1
+  m_isCullingEnabled: 0
+  m_horizontalMapping: 0
+  m_verticalMapping: 0
+  m_uvLineOffset: 0
+  m_geometrySortingOrder: 0
+  m_IsTextObjectScaleStatic: 0
+  m_VertexBufferAutoSizeReduction: 0
+  m_useMaxVisibleDescender: 1
+  m_pageToDisplay: 1
+  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_isUsingLegacyAnimationComponent: 0
+  m_isVolumetricText: 0
+  m_hasFontAssetChanged: 0
+  m_baseMaterial: {fileID: 0}
+  m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!222 &1964551542
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1964551539}
   m_CullTransparentMesh: 1
 --- !u!1 &1969369707
 GameObject:
@@ -32180,6 +32752,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   message: "Patrimoine \u201Cdu milieu\u201D : \n50 % des agents ont moins, \n50
     % ont plus. \nPlus repr\xE9sentatif en cas d\u2019in\xE9galit\xE9s."
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &2000866698
 CanvasRenderer:
@@ -32489,7 +33062,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "0.36\n\u200B"
+  m_text: "0.3\n\u200B"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -32791,6 +33364,7 @@ MonoBehaviour:
     \u201Cd\xE9cente\u201D)\n\nLe seuil de pauvret\xE9 est de 1 288 \u20AC par mois
     en France en 2025 (60% de la mediane)\nCa nous met \xE0 15456 \u20AC par an (radin
     !)"
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &2031075379
 CanvasRenderer:
@@ -32887,6 +33461,81 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_IsOn: 0
+--- !u!1 &2031783651
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2031783652}
+  - component: {fileID: 2031783654}
+  - component: {fileID: 2031783653}
+  m_Layer: 5
+  m_Name: Checkmark
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &2031783652
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2031783651}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 933392342}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 20, y: 20}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &2031783653
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2031783651}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 21300000, guid: 7ff8fcfd3a40c0a448a7183764a4bb2b, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &2031783654
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2031783651}
+  m_CullTransparentMesh: 1
 --- !u!1 &2038991630
 GameObject:
   m_ObjectHideFlags: 0
@@ -33177,6 +33826,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   message: "Le nombre fixe de gens dans le pays\n(evitez d'en mettre mille milliard,
     \xE7a risque de chauffer...)"
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &2046973389
 CanvasRenderer:
@@ -33222,7 +33872,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 10, y: -10}
-  m_SizeDelta: {x: 30, y: 30}
+  m_SizeDelta: {x: 20, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2048468474
 CanvasRenderer:
@@ -33640,7 +34290,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 161.9, y: -644.2}
+  m_AnchoredPosition: {x: 161.9, y: -652.8}
   m_SizeDelta: {x: 300, y: 120}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2070043733
@@ -33899,6 +34549,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   message: Patrimoine de la personne la plus riche de la population.
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &2074389542
 CanvasRenderer:
@@ -34133,6 +34784,7 @@ MonoBehaviour:
     seulement 20% du patrimoine des fran\xE7ais.\r\n\r\nAvec mon \xE9pargne (en liquide),
     j'ach\xE8te un petit manoir dans la loire (patrimoine en dur)\r\n\r\nEn France,
     le patrimoine est compos\xE9 \xE0 62% de \"dur\"."
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &2088888850
 CanvasRenderer:
@@ -34282,6 +34934,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   message: "Part de la richesse d\xE9tenue par les 1 % les plus riches."
+  indexCentile: -1
   delaiApparition: 0
 --- !u!222 &2090747845
 CanvasRenderer:
@@ -34416,7 +35069,7 @@ MonoBehaviour:
   m_CaretColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
   m_CustomCaretColor: 0
   m_SelectionColor: {r: 0.65882355, g: 0.80784315, b: 1, a: 0.7529412}
-  m_Text: 200000
+  m_Text: 280000
   m_CaretBlinkRate: 0.85
   m_CaretWidth: 1
   m_ReadOnly: 0

@@ -1,16 +1,24 @@
 {
   "presets": [
     {
+      "name": "Pas d'impôt",
+      "rates": [0, 0, 0, 0, 0]
+    },
+    {
+      "name": "Impôt pikety",
+      "rates": [0, 0, 0, 0, 3]
+    },
+    {
       "name": "Impôt cool",
       "rates": [0, 1, 2, 3, 5]
     },
     {
       "name": "Impôt raide",
-      "rates": [0, 2, 4, 8, 12]
+      "rates": [0, 2, 4, 6, 8]
     },
     {
       "name": "Impôt qui rigole pas du tout",
-      "rates": [0, 3, 6, 12, 24]
+      "rates": [0, 2, 5, 9, 14]
     },
     {
       "name": "Flat tax",
